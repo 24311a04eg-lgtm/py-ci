@@ -1,4 +1,4 @@
-name: python-docker-ci
+name: production-ready-ci
 
 on:
   push:
@@ -24,9 +24,11 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
-      - run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - run: flake8 .
+      - name: Run lint
+        run: flake8 .
 
   test:
     needs: lint
@@ -44,9 +46,11 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
-      - run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - run: pytest -v
+      - name: Run tests
+        run: pytest -v
 
   docker:
     needs: test
@@ -55,11 +59,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Build Docker image
-        run: docker build -t karthik09484/myrepo:latest .
+        run: docker build -t myapp .
 
-      - name: Push Docker image
-        run: docker push karthik09484/myrepo:latest
+      - name: Run container
+        run: docker run -d -p 5000:5000 --name mycontainer myapp
+
+      - name: Check running containers
+        run: docker ps
+
+      - name: Health check
+        run: curl http://localhost:5000/health
+
+      - name: Show container logs if failed
+        if: failure()
+        run: docker logs mycontainer

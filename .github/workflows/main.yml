@@ -65,12 +65,18 @@ jobs:
       - name: Run container
         run: docker run -d -p 5000:5000 --name mycontainer myapp
 
-      - name: Check running containers
-        run: docker ps
+      - name: Wait for startup
+        run: sleep 10
 
-      - name: Health check
-        run: curl http://localhost:5000/health
+      - name: Show ALL containers
+        run: docker ps -a
 
-      - name: Show container logs if failed
-        if: failure()
+      - name: Inspect container
+        run: docker inspect mycontainer
+
+      - name: Show logs
         run: docker logs mycontainer
+
+      - name: Test health endpoint
+        run: curl -v http://localhost:5000/health
+    

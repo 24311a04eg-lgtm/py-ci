@@ -60,10 +60,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t myapp .
+        run: docker build -t flask-app:latest .
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: flask-app:latest
 
       - name: Run container
-        run: docker run -d -p 5000:5000 --name mycontainer myapp
+        run: docker run -d -p 5000:5000 --name mycontainer flask-app:latest
 
       - name: Wait for startup
         run: sleep 10
@@ -79,4 +84,3 @@ jobs:
 
       - name: Test health endpoint
         run: curl -v http://localhost:5000/health
-    

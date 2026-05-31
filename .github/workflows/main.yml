@@ -106,12 +106,12 @@ jobs:
 
       # Build Docker image
       - name: Build Docker image
-        run: docker build -t flask-app:latest .
+        run: docker build -t repo:latest .
 
       # Tag image for ECR
       - name: Tag Docker image
-        run: docker tag flask-app:latest 598532863566.dkr.ecr.ap-southeast-2.amazonaws.com/flask-app:latest
+        run: docker tag repo:latest 598532863566.dkr.ecr.ap-southeast-2.amazonaws.com/repo:latest
 
       # Push image to ECR
       - name: Push Docker image
-        run: docker push 598532863566.dkr.ecr.ap-southeast-2.amazonaws.com/flask-app:latest
+        run: docker push 598532863566.dkr.ecr.ap-southeast-2.amazonaws.com/repo:latest

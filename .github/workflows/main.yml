@@ -109,7 +109,7 @@ jobs:
         run: docker build -t repo:latest .
 
       # Tag image for ECR
-      - name: Tag Docker image
+      - name: Tag the Docker image
         run: docker tag repo:latest 598532863566.dkr.ecr.ap-southeast-2.amazonaws.com/repo:latest
 
       # Push image to ECR

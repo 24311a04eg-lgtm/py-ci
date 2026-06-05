@@ -59,31 +59,50 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Build Docker image
       - name: Build Docker image
-        run: docker build -t flask-app:latest .
+        run: docker build -t repo:latest .
 
+      # Scan image for vulnerabilities
       - name: Scan the image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: flask-app:latest
+          image-ref: repo:latest
 
+      # Run container
       - name: Run container
-        run: docker run -d -p 5000:5000 --name mycontainer flask-app:latest
+        run: docker run -d -p 5000:5000 --name mycontainer repo:latest
 
+      # Wait for startup
       - name: Wait for startup
         run: sleep 10
 
+      # Show containers
       - name: Show ALL containers
         run: docker ps -a
 
+      # Inspect container
       - name: Inspect container
         run: docker inspect mycontainer
 
+      # Show logs
       - name: Show logs
         run: docker logs mycontainer
 
+      # Test application
       - name: Test health endpoint
         run: curl -v http://localhost:5000/health
+
+      # Save Docker image as tar file
+      - name: Save Docker image
+        run: docker save repo:latest -o repo.tar
+
+      # Upload tar artifact
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: repo.tar
 
   deploy:
     needs: docker
@@ -91,6 +110,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Download Docker image artifact
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+
+      # Load Docker image back
+      - name: Load Docker image
+        run: docker load -i repo.tar
 
       # Configure AWS credentials
       - name: Configure AWS credentials
@@ -103,10 +132,6 @@ jobs:
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         run: aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 598532863566.dkr.ecr.ap-southeast-2.amazonaws.com
-
-      # Build Docker image
-      - name: Build Docker image
-        run: docker build -t repo:latest .
 
       # Tag image for ECR
       - name: Tag the Docker image

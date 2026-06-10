@@ -1,4 +1,4 @@
-# Production-Ready CI/CD Pipeline for Python Applications
+Production-Ready CI/CD Pipeline for Python Applications
 
 A complete CI/CD workflow built with GitHub Actions, Docker, and AWS ECR.
 
@@ -6,11 +6,9 @@ This project automates the entire software delivery process — from linting and
 
 The goal of this project was to simulate a real-world DevOps pipeline used in production environments while keeping the workflow simple, practical, and easy to understand.
 
----
+What This Pipeline Does
 
-## What This Pipeline Does
-
-Every time code is pushed to the `main` branch:
+Every time code is pushed to the main branch or a pull request is opened against main:
 
 * Runs lint checks using Flake8
 * Executes automated tests with Pytest
@@ -18,13 +16,14 @@ Every time code is pushed to the `main` branch:
 * Scans the image for vulnerabilities using Trivy
 * Runs the container automatically
 * Verifies application health with an API endpoint
+* Saves and transfers the Docker image between workflow stages
 * Pushes the validated image to AWS ECR
 
 Everything is handled through a single GitHub Actions workflow.
 
----
+⸻
 
-# Tech Stack
+Tech Stack
 
 * Python 3.11
 * GitHub Actions
@@ -34,11 +33,10 @@ Everything is handled through a single GitHub Actions workflow.
 * Pytest
 * Trivy
 
----
+⸻
 
-# CI/CD Workflow
+CI/CD Workflow
 
-```text id="d8h2s1"
 Code Push / Pull Request
             ↓
       Lint Validation
@@ -53,14 +51,14 @@ Code Push / Pull Request
             ↓
       Health Check Test
             ↓
+     Artifact Creation
+            ↓
     Push Image to AWS ECR
-```
 
----
+⸻
 
-# Project Structure
+Project Structure
 
-```text id="f2s9xa"
 py-ci/
 │
 ├── .github/
@@ -72,19 +70,16 @@ py-ci/
 ├── Dockerfile
 ├── tests/
 └── README.md
-```
 
----
+⸻
 
-# Workflow Breakdown
+Workflow Breakdown
 
-## 1. Lint Stage
+1. Lint Stage
 
 The pipeline starts by checking code quality using Flake8.
 
-```bash id="1c8d7q"
 flake8 .
-```
 
 This helps catch:
 
@@ -94,81 +89,97 @@ This helps catch:
 
 before moving further into the pipeline.
 
----
+⸻
 
-## 2. Test Stage
+2. Test Stage
 
 After linting passes, automated tests are executed using Pytest.
 
-```bash id="x72ja9"
 pytest -v
-```
 
 This ensures the application behaves correctly before creating deployment artifacts.
 
----
+The workflow also uses GitHub Actions cache to speed up dependency installation between runs.
 
-## 3. Docker Build & Validation
+⸻
+
+3. Docker Build & Validation
 
 The application is containerized using Docker.
 
-```bash id="a8sj29"
-docker build -t flask-app:latest .
-```
+docker build -t repo:latest .
 
 Once the image is built, the pipeline:
 
 * Scans the image using Trivy
 * Starts the container
-* Checks logs and container details
-* Verifies the `/health` endpoint
+* Displays running containers
+* Inspects the container
+* Shows container logs
+* Verifies the /health endpoint
 
 Health Check:
 
-```bash id="l91sx2"
 curl -v http://localhost:5000/health
-```
 
 This step validates that the application is actually running correctly inside the container before deployment.
 
----
+⸻
 
-# Security Scanning
+Security Scanning
 
 The workflow uses Trivy to scan Docker images for known vulnerabilities.
 
 This adds an important DevSecOps practice directly into the CI/CD pipeline.
 
----
+⸻
 
-# AWS ECR Deployment
+Docker Image Artifact Handling
+
+After validation, the Docker image is saved as a tar archive and uploaded as a GitHub Actions artifact.
+
+docker save repo:latest -o repo.tar
+
+The deploy stage downloads the artifact and loads the image back into Docker before deployment.
+
+docker load -i repo.tar
+
+This demonstrates artifact sharing between isolated GitHub Actions jobs.
+
+⸻
+
+AWS ECR Deployment
 
 After successful validation, the Docker image is pushed to Amazon Elastic Container Registry (ECR).
 
 Deployment flow:
 
-```text id="k28s7m"
 GitHub Actions
       ↓
 Docker Build
       ↓
 Security Scan
       ↓
+Artifact Upload
+      ↓
+Artifact Download
+      ↓
 AWS ECR Push
-```
 
 AWS credentials are securely stored using GitHub Secrets.
 
 Required secrets:
 
-```text id="p7s2dj"
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-```
+* AWS_ACCESS_KEY_ID
+* AWS_SECRET_ACCESS_KEY
 
----
+AWS Region:
 
-# Why This Project Matters
+ap-southeast-2
+
+⸻
+
+Why This Project Matters
 
 This project demonstrates how modern deployment pipelines reduce manual work and improve reliability.
 
@@ -188,37 +199,29 @@ This creates:
 * repeatable builds,
 * and fewer human errors.
 
----
+⸻
 
-# Running Locally
+Running Locally
 
-## Install Dependencies
+Install Dependencies
 
-```bash id="w9s82j"
 pip install -r requirements.txt
-```
 
-## Run the Application
+Run the Application
 
-```bash id="s7aj28"
 python app.py
-```
 
-## Build Docker Image
+Build Docker Image
 
-```bash id="m8xq12"
-docker build -t flask-app .
-```
+docker build -t repo:latest .
 
-## Run Docker Container
+Run Docker Container
 
-```bash id="z8s2ja"
-docker run -d -p 5000:5000 flask-app
-```
+docker run -d -p 5000:5000 repo:latest
 
----
+⸻
 
-# Future Improvements
+Future Improvements
 
 Planned improvements for this project:
 
@@ -230,20 +233,21 @@ Planned improvements for this project:
 * Slack notifications
 * Blue-Green deployments
 
----
+⸻
 
-# Key DevOps Concepts Used
+Key DevOps Concepts Used
 
 * Continuous Integration
 * Continuous Deployment
 * Docker Containerization
 * Security Scanning
-* Infrastructure Automation
+* Artifact Management
 * Health Monitoring
 * Cloud Registry Deployment
+* GitHub Actions Caching
 
----
+⸻
 
-# Author
+Author
 
 Built as a practical DevOps learning project focused on real CI/CD workflows using Docker, GitHub Actions, and AWS.
